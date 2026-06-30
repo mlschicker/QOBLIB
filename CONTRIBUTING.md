@@ -20,8 +20,8 @@ Each benchmark submission should include:
 ### Required Information
 
 1. **Problem instance identifier** - Which instance(s) were solved
-2. **Submitter details** - Name(s) of the author(s)
-3. **Affiliation** - Affiliation of the author(s) 
+2. **Submitter details** - Name(s) of the author(s). For multiple authors, provide a comma-separated list wrapped in double quotes (e.g. `"Jane Doe, John Roe"`) so the CSV parses correctly.
+3. **Affiliation** - Affiliation of the author(s). For multiple authors, provide a comma-separated list wrapped in double quotes, in the same order as the authors (e.g. `"University A, Company B"`). Repeat an affiliation when several authors share it so that the number of affiliations matches the number of authors.
 4. **Submission date**
 5. **Best objective value found** (for optimization problems)
 6. **Solution file** - In the format specified for the problem class (see solution folders)
@@ -90,8 +90,8 @@ The template includes the following fields:
 | Field                        | Description                                                                                                                                                                                                                               |
 | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Problem**                  | Identifier of the considered problem instance                                                                                                                                                                                             |
-| **Submitter**                | Name(s) of the author(s)                                                                                                                                                                                                                  |
-| **Affiliation**              | Affiliation of the author(s)                                                                                                                                                                                                              |
+| **Submitter**                | Name(s) of the author(s). For multiple authors, a comma-separated list wrapped in double quotes, e.g. `"Jane Doe, John Roe"` (so the CSV parses correctly)                                                                                |
+| **Affiliation**              | Affiliation of the author(s). For multiple authors, a comma-separated list wrapped in double quotes, in the same order as the authors, e.g. `"University A, Company B"`. Repeat a shared affiliation so the count matches the authors      |
 | **Date**                     | Date of submission                                                                                                                                                                                                                        |
 |                              |                                                                                                                                                                                                                                           |
 | **Reference**                | Reference to a paper/repository with more details (number CPUs, processor types, software versions, etc.)                                                                                                                                 |

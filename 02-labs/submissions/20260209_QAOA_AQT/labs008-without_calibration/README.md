@@ -6,7 +6,7 @@ This directory contains the submission for the problem **labs008-without_calibra
 | --- | --- |
 | Problem | LABS (N = 8) |
 | Submitter | Angelika Widl, Daniel Egger, Juris Ulmanis, Christoph Regner |
-| Affiliation | Math.Tec; IBM; AQT |
+| Affiliation | Math.Tec, IBM, AQT, Math.Tec |
 | Date | Nov. 17, 2025 |
 | ====== |  |
 | Reference | N/A |
