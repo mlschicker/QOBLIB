@@ -1,10 +1,22 @@
 name: Validate Submission
 
 # Runs the authoritative submission checker (misc/check_submission.py) on every
-# pull request that touches a submissions/ folder, and reports the result on the PR.
+# pull request that touches a submissions/ folder. The result is written to an
+# artifact that the companion "Comment Submission Validation" workflow turns into
+# a sticky PR comment.
+#
+# Why the split: submissions usually come from forks, where a pull_request-triggered
+# workflow only gets a READ-ONLY token and cannot comment. This workflow safely runs
+# the (untrusted) PR code with that read-only token; the companion workflow_run
+# workflow posts the comment with write access WITHOUT checking out PR code.
+#
 # This complements the in-browser validator on the website: the browser catches
 # format / metadata / value-range mistakes instantly, while this job additionally
-# runs the per-problem solution-feasibility checkers, which a browser cannot.
+# runs the per-problem solution checkers, which a browser cannot.
+#
+# Policy (see misc/CHECKER_CONTRACT.md): a solution file must always be VALID;
+# feasibility is enforced only when the submission declares it (# Feasible Runs),
+# and optimality only when it asserts a proven optimum (Optimality Bound == objective).
 
 on:
   pull_request:
@@ -44,9 +56,14 @@ jobs:
         id: validate
         shell: bash
         run: |
-          set -o pipefail
+          set -uo pipefail
           BASE="${{ github.event.pull_request.base.sha }}"
           HEAD="${{ github.sha }}"
+
+          OUTDIR="$GITHUB_WORKSPACE/_validation"
+          mkdir -p "$OUTDIR"
+          COMMENT="$OUTDIR/comment.md"
+          echo "${{ github.event.pull_request.number }}" > "$OUTDIR/pr-number.txt"
 
           # Submission roots are <NN-problem>/submissions/<submission-name>.
           # Instance directories may be nested in arbitrary subfolders below that
@@ -59,50 +76,117 @@ jobs:
           )
 
           {
-            echo "## QOBLIB submission validation"
+            echo "<!-- qoblib-validation -->"
+            echo "## 🤖 QOBLIB submission validation"
             echo ""
-          } >> "$GITHUB_STEP_SUMMARY"
+          } > "$COMMENT"
 
           if [ "${#ROOTS[@]}" -eq 0 ]; then
-            echo "No submission directories changed — nothing to validate." | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "No submission directories changed — nothing to validate." >> "$COMMENT"
+            echo "failed=0" >> "$GITHUB_OUTPUT"
+            cat "$COMMENT" >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
 
+          echo "Validated **${#ROOTS[@]}** submission root(s):" >> "$COMMENT"
+          echo "" >> "$COMMENT"
+
           FAILED=0
+          declare -a FAILED_ROOTS=()
           for root in "${ROOTS[@]}"; do
             echo "::group::Validating $root"
-            {
-              echo "### \`$root\`"
-              echo ""
-              echo '```'
-            } >> "$GITHUB_STEP_SUMMARY"
-
-            if python misc/check_submission.py "$root" 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"; then
-              status="OK"
+            OUT="$RUNNER_TEMP/out.txt"
+            if python misc/check_submission.py "$root" > "$OUT" 2>&1; then
+              icon="✅"; status="OK"
             else
-              status="FAILED"
-              FAILED=1
+              icon="❌"; status="FAILED"; FAILED=1; FAILED_ROOTS+=("$root")
             fi
-
+            cat "$OUT"
             {
+              echo "### $icon \`$root\` — $status"
+              echo ""
+              echo "<details><summary>Checker output</summary>"
+              echo ""
+              echo '```'
+              cat "$OUT"
               echo '```'
               echo ""
-              echo "**Result: $status**"
+              echo "</details>"
               echo ""
-            } >> "$GITHUB_STEP_SUMMARY"
+            } >> "$COMMENT"
             echo "::endgroup::"
           done
 
-          if [ "$FAILED" -ne 0 ]; then
-            echo "::error::One or more submissions failed validation. See the job summary for details."
+          # Best-known-value gate: fail if an improved BKV is not accompanied by a
+          # solutions/ update. Captured into the same comment.
+          echo "::group::Best-known value check"
+          BKV_OUT="$RUNNER_TEMP/bkv.txt"
+          if python misc/check_bkv_updates.py --base "$BASE" --head "$HEAD" > "$BKV_OUT" 2>&1; then
+            bkv_icon="✅"; bkv_status="OK"
+          else
+            bkv_icon="❌"; bkv_status="FAILED"; FAILED=1
+          fi
+          cat "$BKV_OUT"
+          {
+            echo "### $bkv_icon Best-known value check — $bkv_status"
+            echo ""
+            echo "<details><summary>Output</summary>"
+            echo ""
+            echo '```'
+            cat "$BKV_OUT"
+            echo '```'
+            echo ""
+            echo "</details>"
+            echo ""
+          } >> "$COMMENT"
+          echo "::endgroup::"
+
+          # Prepend the overall verdict right after the heading.
+          HEADER="$RUNNER_TEMP/header.md"
+          {
+            echo "<!-- qoblib-validation -->"
+            echo "## 🤖 QOBLIB submission validation"
+            echo ""
+            if [ "$FAILED" -ne 0 ]; then
+              echo "### ❌ Validation failed"
+              echo ""
+              echo "The following check(s) did not pass:"
+              for r in "${FAILED_ROOTS[@]}"; do echo "- \`$r\`"; done
+              [ "$bkv_status" = "FAILED" ] && echo "- Best-known value check"
+            else
+              echo "### ✅ All checks passed"
+            fi
+            echo ""
+          } > "$HEADER"
+          # Replace the placeholder header (first 3 lines) with the verdict header.
+          tail -n +4 "$COMMENT" > "$COMMENT.body"
+          cat "$HEADER" "$COMMENT.body" > "$COMMENT"
+
+          {
+            echo ""
+            echo "---"
+            DOC_URL="${{ github.server_url }}/${{ github.repository }}/blob/${HEAD}/misc/CHECKER_CONTRACT.md"
+            echo "_Policy: solution files must always be **valid**; **feasibility** is checked only when the submission declares it (\`# Feasible Runs\` > 0 or blank), and **optimality** only when it asserts a proven optimum (\`Optimality Bound\` = \`Best Objective Value\`). See [\`misc/CHECKER_CONTRACT.md\`]($DOC_URL)._"
+          } >> "$COMMENT"
+
+          cat "$COMMENT" >> "$GITHUB_STEP_SUMMARY"
+          echo "failed=$FAILED" >> "$GITHUB_OUTPUT"
+
+      - name: Upload validation result (for the commenting workflow)
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-comment
+          path: _validation/
+          if-no-files-found: ignore
+          retention-days: 3
+
+      - name: Fail the job if any check failed
+        if: always()
+        shell: bash
+        run: |
+          if [ "${{ steps.validate.outputs.failed }}" = "1" ]; then
+            echo "::error::One or more submissions failed validation. See the PR comment / job summary."
             exit 1
           fi
           echo "All changed submissions passed validation. ✅"
-
-      - name: Require solution updates for improved best-known values
-        shell: bash
-        run: |
-          python misc/check_bkv_updates.py \
-            --base "${{ github.event.pull_request.base.sha }}" \
-            --head "${{ github.sha }}"
-

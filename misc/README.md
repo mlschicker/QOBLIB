@@ -49,6 +49,21 @@ python check_submission.py -h
 - Auto-generates optional README files for problem directories
 - `--all`: batch-validate every submission in the library with an aggregate report
 
+**Solution-checker policy:** the per-problem checkers report a fact about each
+solution file via a fixed exit-code contract, and this script turns that into a
+pass/fail decision using what the submission declares in its `*_summary.csv`:
+
+- A **malformed / unparseable** solution file always fails.
+- **Infeasibility** fails only when the submission claims feasibility
+  (`# Feasible Runs > 0` or blank); declare `# Feasible Runs = 0` to report a valid
+  but infeasible run without failing.
+- **Non-optimality** fails only when the submission asserts a proven optimum
+  (`Optimality Bound` == `Best Objective Value`); a heuristic with
+  `Optimality Bound = N/A` is accepted.
+
+See [CHECKER_CONTRACT.md](CHECKER_CONTRACT.md) for the exit codes (`0`, `20`, `21`,
+`10`, `2`) and the full decision table.
+
 **Example (Independent Set):**
 ```bash
 python check_submission.py \
