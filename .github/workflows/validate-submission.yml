@@ -98,3 +98,11 @@ jobs:
             exit 1
           fi
           echo "All changed submissions passed validation. ✅"
+
+      - name: Require solution updates for improved best-known values
+        shell: bash
+        run: |
+          python misc/check_bkv_updates.py \
+            --base "${{ github.event.pull_request.base.sha }}" \
+            --head "${{ github.sha }}"
+
