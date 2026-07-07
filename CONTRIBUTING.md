@@ -13,6 +13,30 @@ Please follow the guidelines below when preparing your submission.
 Before submitting, validate your submission structure and contents using the automated checker tool provided in [misc/check_submission.py](misc/check_submission.py). 
 The checker verifies directory structure, CSV format consistency, and can optionally validate solutions. For detailed usage instructions and options, see [misc/README.md](misc/README.md).
 
+The same checker runs automatically on every pull request and posts its result as a comment; a red run blocks the merge until it is fixed.
+
+### What is required of a solution
+
+The per-problem checkers report a fact about your solution file, and the pipeline
+then applies a policy based on **what your CSV declares** (see
+[misc/CHECKER_CONTRACT.md](misc/CHECKER_CONTRACT.md) for the full exit-code table):
+
+- **Your solution file must always be valid** — it must parse and match the
+  instance's dimensions/format. A malformed file always fails, regardless of what
+  you declare.
+- **Feasibility is only required if you claim it.** If a run did not produce a
+  feasible solution, set **`# Feasible Runs` to `0`** for that instance. The checker
+  will then accept the (valid) solution file even though it violates constraints —
+  useful for reporting exploratory or withdrawn runs honestly. If `# Feasible Runs`
+  is `> 0` (or left blank), at least one submitted solution file must be feasible.
+- **Optimality is never required for a submission.** A valid, feasible heuristic
+  solution that is not optimal is accepted. Optimality is only cross-checked when you
+  **assert a proven optimum** by setting **`Optimality Bound` equal to your
+  `Best Objective Value`**; leave `Optimality Bound` as `N/A` for a heuristic run.
+  (`# Successful Runs` is measured against your algorithm's own best, not the global
+  optimum, so it does not trigger an optimality check.) The curated best-known
+  solutions under `NN-problem/solutions/` are governed separately.
+
 ## Submission Requirements
 
 Each benchmark submission should include:

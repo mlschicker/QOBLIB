@@ -19,10 +19,11 @@ Do not duplicate CSV metadata here; point reviewers to the source files in this 
 - **Reference/paper/code link(s)** (if applicable):
 
 ### Validation checklist (do not remove)
-- [ ] I followed `/home/runner/work/QOBLIB/QOBLIB/CONTRIBUTING.md`.
+- [ ] I followed `CONTRIBUTING.md`.
 - [ ] I ran `python misc/check_submission.py <submission_root>` for each changed submission root.
 - [ ] Submission format checks pass locally.
-- [ ] If applicable, solution feasibility checks pass locally.
+- [ ] Every solution file is **valid** (parses and matches the instance format/size).
+- [ ] Feasibility/optimality match what the CSV declares: runs that were **not feasible** have `# Feasible Runs = 0`, and I only asserted a proven optimum (`Optimality Bound` = `Best Objective Value`) when the solution truly is optimal. See `misc/CHECKER_CONTRACT.md`.
 
 ### Best-known value handling (do not remove)
 - [ ] I checked whether this submission improves the current best-known value for any touched instance.

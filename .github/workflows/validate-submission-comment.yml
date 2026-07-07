@@ -1,0 +1,60 @@
+name: Comment Submission Validation
+
+# Companion to "Validate Submission". That workflow runs on `pull_request` with a
+# read-only token (so it can safely build and run untrusted fork code) and uploads
+# the rendered comment as an artifact. This workflow runs in the BASE repository
+# context via `workflow_run`, so it has a write token and can post the comment on
+# fork PRs — and it never checks out or executes any PR code, only the trusted
+# artifact (comment body + PR number).
+
+on:
+  workflow_run:
+    workflows: ["Validate Submission"]
+    types: [completed]
+
+permissions:
+  contents: read
+  actions: read
+  pull-requests: write
+
+jobs:
+  comment:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.event == 'pull_request'
+    steps:
+      - name: Download validation artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: pr-comment
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+      - name: Post/update PR results comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            if (!fs.existsSync('comment.md') || !fs.existsSync('pr-number.txt')) {
+              core.info('No validation artifact found (nothing to validate, or the run was skipped). Exiting.');
+              return;
+            }
+            const body = fs.readFileSync('comment.md', 'utf8');
+            const prNumber = parseInt(fs.readFileSync('pr-number.txt', 'utf8').trim(), 10);
+            if (!Number.isInteger(prNumber) || prNumber <= 0) {
+              core.info('No valid PR number in artifact. Exiting.');
+              return;
+            }
+            const marker = '<!-- qoblib-validation -->';
+            const { owner, repo } = context.repo;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner, repo, issue_number: prNumber, per_page: 100,
+            });
+            const existing = comments.find(c => c.body && c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+              core.info(`Updated existing validation comment ${existing.id} on PR #${prNumber}.`);
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number: prNumber, body });
+              core.info(`Created validation comment on PR #${prNumber}.`);
+            }

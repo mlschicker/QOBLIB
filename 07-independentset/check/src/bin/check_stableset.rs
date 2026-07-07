@@ -502,6 +502,16 @@ fn verify_solution(g: &Graph, solution_data: &[u8]) -> bool {
 }
 
 fn main() {
+    // Exit-code contract (see misc/CHECKER_CONTRACT.md):
+    //   0  VALID        valid file, feasible (stable set)
+    //   21 INFEASIBLE   valid file, selected set is not stable
+    //   10 INVALID_FILE unparseable solution file (raised via this hook)
+    //   2  USAGE        bad arguments
+    std::panic::set_hook(Box::new(|info| {
+        eprintln!("INVALID_FILE: {info}");
+        std::process::exit(10);
+    }));
+
     println!("Qbench Stable Set Solution Checker Version {VERSION}");
 
     let args: Vec<String> = env::args().collect();
@@ -536,8 +546,8 @@ fn main() {
         println!("VALID: Solution successfully verified");
         std::process::exit(0);
     } else {
-        println!("INVALID: Solution verification failed");
-        std::process::exit(1);
+        println!("INFEASIBLE: Valid solution file, but the set is not stable");
+        std::process::exit(21);
     }
 }
 

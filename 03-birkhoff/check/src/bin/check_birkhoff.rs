@@ -156,6 +156,16 @@ fn check_birkhoff_decomposition(instance: &Instance, solution: &Solution) -> Res
 }
 
 fn main() {
+    // Exit-code contract (see misc/CHECKER_CONTRACT.md):
+    //   0  VALID        valid file, feasible
+    //   21 INFEASIBLE   valid file, one or more instances fail verification
+    //   10 INVALID_FILE unparseable solution file (raised via this hook)
+    //   2  USAGE        bad arguments
+    std::panic::set_hook(Box::new(|info| {
+        eprintln!("INVALID_FILE: {info}");
+        std::process::exit(10);
+    }));
+
     println!(
         "QOBLIB Birkhoff Decomposition Solution Checker Version {}",
         VERSION
@@ -235,10 +245,10 @@ fn main() {
         std::process::exit(0);
     } else {
         println!(
-            "INVALID: {} of {} instances failed",
+            "INFEASIBLE: {} of {} instances failed",
             failed,
             passed + failed
         );
-        std::process::exit(1);
+        std::process::exit(21);
     }
 }

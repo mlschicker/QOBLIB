@@ -320,6 +320,16 @@ fn verify_solution(node_count: usize, max_degree: usize, diameter: usize, g: &Gr
 }
 
 fn main() {
+    // Exit-code contract (see misc/CHECKER_CONTRACT.md):
+    //   0  VALID        valid file, feasible (degree/diameter constraints met)
+    //   21 INFEASIBLE   valid file, constraints violated
+    //   10 INVALID_FILE unparseable solution file (raised via this hook)
+    //   2  USAGE        bad arguments
+    std::panic::set_hook(Box::new(|info| {
+        eprintln!("INVALID_FILE: {info}");
+        std::process::exit(10);
+    }));
+
     println!("Qbench Order-Degree Solution Checker Version {VERSION}");
 
     let args: Vec<String> = env::args().collect();
@@ -352,8 +362,8 @@ fn main() {
         println!("VALID: Solution successfully verified");
         std::process::exit(0);
     } else {
-        println!("INVALID: Solution verification failed");
-        std::process::exit(1);
+        println!("INFEASIBLE: Valid solution file, but it violates the constraints");
+        std::process::exit(21);
     }
 }
 
