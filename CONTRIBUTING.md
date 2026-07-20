@@ -37,6 +37,24 @@ then applies a policy based on **what your CSV declares** (see
   optimum, so it does not trigger an optimality check.) The curated best-known
   solutions under `NN-problem/solutions/` are governed separately.
 
+### Best-known values are updated automatically
+
+You do **not** need to touch any `solutions/` directory. When your submission is
+merged, `.github/workflows/update-bkv.yml` recomputes each problem's best-known
+value from the reference solutions plus every feasible submission, and:
+
+- copies your solution file into `NN-problem/solutions/` when it improves the
+  best-known value (for problems stored as one solution file per instance), and
+- regenerates the best-known table inside `NN-problem/solutions/README.md`, listing each
+  instance's best-known value and the **first source** that reached it — a link to the
+  crediting submission, or `reference` for a curated/literature solution.
+
+The best-known value is awarded to the *first* source to reach it: reference
+solutions are the baseline, so a submission is credited only when it is the earliest
+source to strictly improve the previous best. Attribution is computed from your CSV's
+`Best Objective Value` and `# Feasible Runs`, so keep those accurate. You can preview
+the result locally with `python misc/update_bkv.py --check`.
+
 ## Submission Requirements
 
 Each benchmark submission should include:

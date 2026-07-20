@@ -117,18 +117,16 @@ jobs:
             echo "::endgroup::"
           done
 
-          # Best-known-value gate: fail if an improved BKV is not accompanied by a
-          # solutions/ update. Captured into the same comment.
+          # Best-known-value check (informational): reports any improvement over the
+          # current reference. It never fails the PR — the reference solutions/ files
+          # solutions and README.md tables are regenerated automatically on merge to main by
+          # .github/workflows/update-bkv.yml.
           echo "::group::Best-known value check"
           BKV_OUT="$RUNNER_TEMP/bkv.txt"
-          if python misc/check_bkv_updates.py --base "$BASE" --head "$HEAD" > "$BKV_OUT" 2>&1; then
-            bkv_icon="✅"; bkv_status="OK"
-          else
-            bkv_icon="❌"; bkv_status="FAILED"; FAILED=1
-          fi
+          python misc/check_bkv_updates.py --warn-only --base "$BASE" --head "$HEAD" > "$BKV_OUT" 2>&1 || true
           cat "$BKV_OUT"
           {
-            echo "### $bkv_icon Best-known value check — $bkv_status"
+            echo "### ℹ️ Best-known value check"
             echo ""
             echo "<details><summary>Output</summary>"
             echo ""
@@ -150,9 +148,8 @@ jobs:
             if [ "$FAILED" -ne 0 ]; then
               echo "### ❌ Validation failed"
               echo ""
-              echo "The following check(s) did not pass:"
+              echo "The following submission root(s) did not pass:"
               for r in "${FAILED_ROOTS[@]}"; do echo "- \`$r\`"; done
-              [ "$bkv_status" = "FAILED" ] && echo "- Best-known value check"
             else
               echo "### ✅ All checks passed"
             fi
