@@ -23,6 +23,27 @@ uv run --project misc qoblib-update-bkv --check
 uv run --project misc qoblib-build-site --out _site
 ```
 
+## Testing the workflows locally
+
+The workflows are thin wrappers around the commands above, so you can reproduce
+them without Docker using [`local-ci.sh`](local-ci.sh):
+
+```bash
+misc/ci/local-ci.sh            # all three (default)
+misc/ci/local-ci.sh pages      # unit tests + build_site      (pages.yml)
+misc/ci/local-ci.sh bkv        # update_bkv --check, no writes (update-bkv.yml)
+misc/ci/local-ci.sh validate   # check_submission + check_bkv  (validate-submission.yml)
+```
+
+- `bkv` is non-destructive (`--check` writes nothing, exits non-zero if a table
+  is stale).
+- `validate` diffs against `origin/main` by default; override with `BASE=…
+  HEAD=…`. It uses `--no-check` (fast structural pass); set `CHECK_ARGS=""` for
+  the full run, which needs `cargo` + each problem's `check/` project.
+
+For full container-level fidelity, install Docker + [`act`](https://github.com/nektos/act)
+and run e.g. `act pull_request -W .github/workflows/pages.yml`.
+
 ## `check_submission.py`
 
 Validates that a submission matches the QOBLIB contribution guidelines.
