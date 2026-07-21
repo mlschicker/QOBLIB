@@ -1,6 +1,6 @@
 name: Validate Submission
 
-# Runs the authoritative submission checker (misc/check_submission.py) on every
+# Runs the authoritative submission checker (misc/ci/check_submission.py) on every
 # pull request that touches a submissions/ folder. The result is written to an
 # artifact that the companion "Comment Submission Validation" workflow turns into
 # a sticky PR comment.
@@ -14,7 +14,7 @@ name: Validate Submission
 # format / metadata / value-range mistakes instantly, while this job additionally
 # runs the per-problem solution checkers, which a browser cannot.
 #
-# Policy (see misc/CHECKER_CONTRACT.md): a solution file must always be VALID;
+# Policy (see misc/ci/CHECKER_CONTRACT.md): a solution file must always be VALID;
 # feasibility is enforced only when the submission declares it (# Feasible Runs),
 # and optimality only when it asserts a proven optimum (Optimality Bound == objective).
 
@@ -35,10 +35,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.12"
+          enable-cache: true
 
       - name: Set up Rust (for per-problem solution checkers)
         uses: dtolnay/rust-toolchain@stable
@@ -96,7 +97,7 @@ jobs:
           for root in "${ROOTS[@]}"; do
             echo "::group::Validating $root"
             OUT="$RUNNER_TEMP/out.txt"
-            if python misc/check_submission.py "$root" > "$OUT" 2>&1; then
+            if uv run --project misc qoblib-check-submission "$root" > "$OUT" 2>&1; then
               icon="✅"; status="OK"
             else
               icon="❌"; status="FAILED"; FAILED=1; FAILED_ROOTS+=("$root")
@@ -123,7 +124,7 @@ jobs:
           # .github/workflows/update-bkv.yml.
           echo "::group::Best-known value check"
           BKV_OUT="$RUNNER_TEMP/bkv.txt"
-          python misc/check_bkv_updates.py --warn-only --base "$BASE" --head "$HEAD" > "$BKV_OUT" 2>&1 || true
+          uv run --project misc qoblib-check-bkv --warn-only --base "$BASE" --head "$HEAD" > "$BKV_OUT" 2>&1 || true
           cat "$BKV_OUT"
           {
             echo "### ℹ️ Best-known value check"
@@ -162,8 +163,8 @@ jobs:
           {
             echo ""
             echo "---"
-            DOC_URL="${{ github.server_url }}/${{ github.repository }}/blob/${HEAD}/misc/CHECKER_CONTRACT.md"
-            echo "_Policy: solution files must always be **valid**; **feasibility** is checked only when the submission declares it (\`# Feasible Runs\` > 0 or blank), and **optimality** only when it asserts a proven optimum (\`Optimality Bound\` = \`Best Objective Value\`). See [\`misc/CHECKER_CONTRACT.md\`]($DOC_URL)._"
+            DOC_URL="${{ github.server_url }}/${{ github.repository }}/blob/${HEAD}/misc/ci/CHECKER_CONTRACT.md"
+            echo "_Policy: solution files must always be **valid**; **feasibility** is checked only when the submission declares it (\`# Feasible Runs\` > 0 or blank), and **optimality** only when it asserts a proven optimum (\`Optimality Bound\` = \`Best Objective Value\`). See [\`misc/ci/CHECKER_CONTRACT.md\`]($DOC_URL)._"
           } >> "$COMMENT"
 
           cat "$COMMENT" >> "$GITHUB_STEP_SUMMARY"

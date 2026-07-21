@@ -17,7 +17,7 @@ body:
       options:
         - Submission folder structure
         - CSV metadata fields
-        - Running misc/check_submission.py
+        - Running misc/ci/check_submission.py
         - Solution file format
         - New instance contribution
         - Other

@@ -22,19 +22,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.12"
+          enable-cache: true
 
       - name: Run unit tests
-        run: python -m unittest discover -s tests
+        run: uv run --project misc python -m unittest discover -s tests
 
       - name: Build site
         env:
           SITE_REPO_URL: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.html_url || format('{0}/{1}', github.server_url, github.repository) }}
           SITE_REF: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
-        run: python misc/build_site.py --out _site --repo-url "$SITE_REPO_URL" --ref "$SITE_REF"
+        run: uv run --project misc qoblib-build-site --out _site --repo-url "$SITE_REPO_URL" --ref "$SITE_REF"
 
       - name: Upload PR preview artifact
         uses: actions/upload-artifact@v7

@@ -24,7 +24,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from site_builder import config
-from site_builder.solutions import load_birkhoff_solution_map, read_solutions_folder
+from site_builder.solutions import load_reference_map
 
 ROOT_RE = re.compile(r"^([0-9]{2}-[^/]+/submissions/[^/]+)/")
 SOLUTIONS_RE = re.compile(r"^([0-9]{2}-[^/]+)/solutions/")
@@ -81,9 +81,7 @@ def _iter_summary_rows(submission_root: Path):
 
 
 def _load_reference_map(problem_dir: Path) -> dict[str, dict]:
-    if problem_dir.name.startswith("03-"):
-        return load_birkhoff_solution_map(problem_dir)
-    return read_solutions_folder(problem_dir / "solutions")
+    return load_reference_map(problem_dir)
 
 
 def main(argv: list[str] | None = None) -> int:

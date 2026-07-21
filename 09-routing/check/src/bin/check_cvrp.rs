@@ -277,7 +277,7 @@ fn verify_solution(instance: &Instance, solution: &Solution) -> (bool, i32) {
 }
 
 fn main() {
-    // Exit-code contract (see misc/CHECKER_CONTRACT.md):
+    // Exit-code contract (see misc/ci/CHECKER_CONTRACT.md):
     //   0  VALID        valid file, feasible
     //   21 INFEASIBLE   valid file, routes violate capacity/coverage constraints
     //   10 INVALID_FILE unparseable / unreadable solution file (hook + read guard)

@@ -294,7 +294,7 @@ fn verify_solution(k: usize, solution_data: &[u8]) -> bool {
     verified
 }
 fn main() {
-    // Exit-code contract (see misc/CHECKER_CONTRACT.md):
+    // Exit-code contract (see misc/ci/CHECKER_CONTRACT.md):
     //   0  VALID        valid file, feasible AND optimal
     //   20 SUBOPTIMAL   valid file, feasible but not optimal
     //   10 INVALID_FILE unparseable / wrong-length solution file (raised via this hook)

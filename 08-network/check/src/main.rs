@@ -66,7 +66,7 @@ fn main() {
 
     let result = run_checker(n, &demand_matrix, &sol_path);
 
-    // Exit-code contract (see misc/CHECKER_CONTRACT.md):
+    // Exit-code contract (see misc/ci/CHECKER_CONTRACT.md):
     //   0  VALID        valid file, feasible
     //   21 INFEASIBLE   valid file, degree/flow constraints violated
     //   10 INVALID_FILE the solution file could not be parsed (run_checker's only
