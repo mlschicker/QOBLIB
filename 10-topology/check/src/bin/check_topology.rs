@@ -320,7 +320,7 @@ fn verify_solution(node_count: usize, max_degree: usize, diameter: usize, g: &Gr
 }
 
 fn main() {
-    // Exit-code contract (see misc/CHECKER_CONTRACT.md):
+    // Exit-code contract (see misc/ci/CHECKER_CONTRACT.md):
     //   0  VALID        valid file, feasible (degree/diameter constraints met)
     //   21 INFEASIBLE   valid file, constraints violated
     //   10 INVALID_FILE unparseable solution file (raised via this hook)

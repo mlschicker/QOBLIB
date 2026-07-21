@@ -24,7 +24,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from site_builder import config
-from site_builder.solutions import load_birkhoff_solution_map, read_solutions_folder
+from site_builder.solutions import load_reference_map
 
 ROOT_RE = re.compile(r"^([0-9]{2}-[^/]+/submissions/[^/]+)/")
 SOLUTIONS_RE = re.compile(r"^([0-9]{2}-[^/]+)/solutions/")
@@ -81,9 +81,7 @@ def _iter_summary_rows(submission_root: Path):
 
 
 def _load_reference_map(problem_dir: Path) -> dict[str, dict]:
-    if problem_dir.name.startswith("03-"):
-        return load_birkhoff_solution_map(problem_dir)
-    return read_solutions_folder(problem_dir / "solutions")
+    return load_reference_map(problem_dir)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -95,6 +93,16 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--base", required=True, help="Base commit SHA for the PR diff.")
     parser.add_argument("--head", required=True, help="Head commit SHA for the PR diff.")
+    parser.add_argument(
+        "--warn-only",
+        action="store_true",
+        help=(
+            "Report best-known improvements informationally and always exit 0. "
+            "Use this now that records are regenerated automatically on merge by "
+            ".github/workflows/update-bkv.yml — a manual solutions/ update is no "
+            "longer required in the PR."
+        ),
+    )
     args = parser.parse_args(argv)
 
     repo_root = Path(".").resolve()
@@ -161,6 +169,16 @@ def main(argv: list[str] | None = None) -> int:
             )
 
     if violations:
+        if args.warn_only:
+            print(
+                "\nNOTE: This PR improves the best-known value for the problem(s) below. "
+                "The reference solutions/ files and BEST_KNOWN.md tables will be updated "
+                "automatically on merge to main (.github/workflows/update-bkv.yml) — no "
+                "manual solutions/ change is required in this PR:"
+            )
+            for violation in violations:
+                print(f"  - {violation}")
+            return 0
         print("\nERROR: Best-known-value improvements require solution-directory updates in the same PR:")
         for violation in violations:
             print(f"  - {violation}")

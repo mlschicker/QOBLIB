@@ -156,7 +156,7 @@ fn check_birkhoff_decomposition(instance: &Instance, solution: &Solution) -> Res
 }
 
 fn main() {
-    // Exit-code contract (see misc/CHECKER_CONTRACT.md):
+    // Exit-code contract (see misc/ci/CHECKER_CONTRACT.md):
     //   0  VALID        valid file, feasible
     //   21 INFEASIBLE   valid file, one or more instances fail verification
     //   10 INVALID_FILE unparseable solution file (raised via this hook)

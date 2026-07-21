@@ -39,7 +39,7 @@ struct Cli {
 fn main() {
     let result = run_checker();
 
-    // Exit-code contract (see misc/CHECKER_CONTRACT.md):
+    // Exit-code contract (see misc/ci/CHECKER_CONTRACT.md):
     //   0  VALID        valid file, feasible
     //   21 INFEASIBLE   valid file, solution violates the problem constraints
     //   10 INVALID_FILE the solution file could not be read/parsed

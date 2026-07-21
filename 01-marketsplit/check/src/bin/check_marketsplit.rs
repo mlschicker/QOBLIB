@@ -207,7 +207,7 @@ fn verify_solution(instance_data : &str, solution_data : &[u8]) -> bool {
     verified
 }
 fn main() {
-    // Exit-code contract (see misc/CHECKER_CONTRACT.md):
+    // Exit-code contract (see misc/ci/CHECKER_CONTRACT.md):
     //   0  VALID        valid file, feasible
     //   21 INFEASIBLE   valid file, constraint violated
     //   10 INVALID_FILE unparseable / wrong-shape solution file (raised via this hook)

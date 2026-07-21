@@ -3,7 +3,7 @@
 Every per-problem solution checker under `NN-problem/check/` is a small, independent
 program that **reports facts about a solution file**. It does *not* decide whether a
 submission is acceptable — that decision (the *policy*) lives in
-[`misc/check_submission.py`](check_submission.py), which combines the checker's fact
+[`misc/ci/check_submission.py`](check_submission.py), which combines the checker's fact
 with what the submission *declares* about itself in its `*_summary.csv`.
 
 To make that split work, every checker speaks the same exit-code language.
@@ -48,7 +48,7 @@ be rewritten.
 
 * `feas_claimed` — the submission claims it found a feasible solution.
   Derived from the `# Feasible Runs` column (blank / `N/A` ⇒ assumed feasible,
-  otherwise `> 0`), matching `misc/check_bkv_updates.py::_is_feasible_row`.
+  otherwise `> 0`), matching `misc/ci/check_bkv_updates.py::_is_feasible_row`.
 * `opt_claimed` — the submission asserts a *proven* optimum, expressed by the
   `Optimality Bound` meeting the `Best Objective Value`.
   `# Successful Runs` is **not** used: per `CONTRIBUTING.md` it counts runs within the
@@ -78,7 +78,7 @@ Consequences:
   `Best Objective Value`). A heuristic that leaves `Optimality Bound` as `N/A` is
   accepted regardless of how close it is to the optimum. (Optimality of the *curated*
   best-known solutions under `NN-problem/solutions/` is governed separately by
-  `misc/check_bkv_updates.py`.)
+  `misc/ci/check_bkv_updates.py`.)
 
 ### Multiple solution files
 
