@@ -5,7 +5,7 @@
 # so this runs the same commands from the repo root.
 #
 # Usage:
-#   misc/ci/local-ci.sh [pages|bkv|validate|all]   # default: all
+#   misc/ci/local-ci.sh [tests|pages|bkv|validate|all]   # default: all
 #
 # Env overrides:
 #   BASE, HEAD    git refs the `validate` diff runs against
@@ -24,7 +24,12 @@ UV=(uv run --project misc)
 rc=0
 step() { printf '\n\033[1;34m▶ %s\033[0m\n' "$*"; }
 
-run_pages() {   # .github/workflows/pages.yml
+run_tests() {   # .github/workflows/tests.yml
+  step "tests: unit tests"
+  "${UV[@]}" python -m unittest discover -s tests || rc=1
+}
+
+run_pages() {   # .github/workflows/pages.yml (main only — tests, then build + deploy)
   step "pages: unit tests"
   "${UV[@]}" python -m unittest discover -s tests || rc=1
   step "pages: build site → _site/ (gitignored)"
@@ -65,11 +70,12 @@ run_validate() {  # .github/workflows/validate-submission.yml
 }
 
 case "${1:-all}" in
+  tests)    run_tests ;;
   pages)    run_pages ;;
   bkv)      run_bkv ;;
   validate) run_validate ;;
-  all)      run_pages; run_bkv; run_validate ;;
-  *) echo "usage: $0 [pages|bkv|validate|all]" >&2; exit 2 ;;
+  all)      run_tests; run_pages; run_bkv; run_validate ;;
+  *) echo "usage: $0 [tests|pages|bkv|validate|all]" >&2; exit 2 ;;
 esac
 
 if [ "$rc" -eq 0 ]; then printf '\n\033[1;32m✓ local CI passed\033[0m\n'; else printf '\n\033[1;31m✗ local CI had failures\033[0m\n'; fi

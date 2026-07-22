@@ -29,10 +29,11 @@ The workflows are thin wrappers around the commands above, so you can reproduce
 them without Docker using [`local-ci.sh`](local-ci.sh):
 
 ```bash
-misc/ci/local-ci.sh            # all three (default)
-misc/ci/local-ci.sh pages      # unit tests + build_site      (pages.yml)
-misc/ci/local-ci.sh bkv        # update_bkv --check, no writes (update-bkv.yml)
-misc/ci/local-ci.sh validate   # check_submission + check_bkv  (validate-submission.yml)
+misc/ci/local-ci.sh            # everything (default)
+misc/ci/local-ci.sh tests      # unit tests                    (tests.yml)
+misc/ci/local-ci.sh pages      # unit tests + build_site       (pages.yml)
+misc/ci/local-ci.sh bkv        # update_bkv --check, no writes  (update-bkv.yml)
+misc/ci/local-ci.sh validate   # check_submission + check_bkv   (validate-submission.yml)
 ```
 
 - `bkv` is non-destructive (`--check` writes nothing, exits non-zero if a table
