@@ -9,7 +9,7 @@ body:
       value: |
         Thanks for reporting a bug.
 
-        Please review `/home/runner/work/QOBLIB/QOBLIB/CONTRIBUTING.md` before filing submission-related issues.
+        Please review `CONTRIBUTING.md` before filing submission-related issues.
   - type: dropdown
     id: category
     attributes:
@@ -29,7 +29,7 @@ body:
     id: problem_class
     attributes:
       label: Affected problem class
-      description: Example: 01-marketsplit
+      description: "Example: 01-marketsplit"
       placeholder: 01-marketsplit
     validations:
       required: true
@@ -38,7 +38,7 @@ body:
     attributes:
       label: Affected instance ID(s)
       description: Provide one or more IDs, or N/A.
-      placeholder: Example: msc_100_5
+      placeholder: "Example: msc_100_5"
     validations:
       required: true
   - type: textarea
@@ -77,7 +77,7 @@ body:
     attributes:
       label: Confirmation (do not remove)
       options:
-        - label: I reviewed `/home/runner/work/QOBLIB/QOBLIB/CONTRIBUTING.md`.
+        - label: I reviewed `CONTRIBUTING.md`.
           required: true
         - label: I provided enough detail to reproduce the issue.
           required: true

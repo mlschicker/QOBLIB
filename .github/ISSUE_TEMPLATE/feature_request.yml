@@ -9,7 +9,7 @@ body:
       value: |
         Thanks for proposing an improvement.
 
-        For submission-specific expectations, see `/home/runner/work/QOBLIB/QOBLIB/CONTRIBUTING.md`.
+        For submission-specific expectations, see `CONTRIBUTING.md`.
   - type: dropdown
     id: scope
     attributes:

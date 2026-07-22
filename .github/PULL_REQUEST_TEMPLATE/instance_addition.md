@@ -13,7 +13,7 @@ Use this template for new or updated instance data (not result submissions).
 - **Changed path(s)** (`instances/`, `info/`, `models/`, etc.):
 
 ### Validation checklist (do not remove)
-- [ ] I followed `/home/runner/work/QOBLIB/QOBLIB/CONTRIBUTING.md` and relevant problem-class README guidance.
+- [ ] I followed `CONTRIBUTING.md` and relevant problem-class README guidance.
 - [ ] Added/updated instances follow repository naming and folder conventions.
 - [ ] Any related checker/model/docs files were updated if needed.
 

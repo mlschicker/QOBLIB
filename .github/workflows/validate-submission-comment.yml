@@ -45,8 +45,30 @@ jobs:
               core.info('No valid PR number in artifact. Exiting.');
               return;
             }
-            const marker = '<!-- qoblib-validation -->';
             const { owner, repo } = context.repo;
+
+            // The artifact is produced by a job that runs untrusted PR code, so the
+            // PR number in it cannot be trusted on its own: a malicious PR could
+            // overwrite pr-number.txt to make this write-scoped workflow comment on
+            // an arbitrary PR. Verify it resolves to the PR that actually triggered
+            // this run by matching the trusted head SHA from the workflow_run payload
+            // (set by GitHub, not by PR code). We can't use workflow_run.pull_requests[]
+            // instead, because it is empty for fork PRs — the case this whole workflow
+            // exists to serve.
+            let pr;
+            try {
+              ({ data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: prNumber }));
+            } catch (e) {
+              core.info(`PR #${prNumber} from artifact not found (${e.status}). Exiting.`);
+              return;
+            }
+            const runHeadSha = context.payload.workflow_run.head_sha;
+            if (pr.head.sha !== runHeadSha) {
+              core.warning(`Artifact PR #${prNumber} head ${pr.head.sha} != run head ${runHeadSha}; refusing to comment.`);
+              return;
+            }
+
+            const marker = '<!-- qoblib-validation -->';
             const comments = await github.paginate(github.rest.issues.listComments, {
               owner, repo, issue_number: prNumber, per_page: 100,
             });

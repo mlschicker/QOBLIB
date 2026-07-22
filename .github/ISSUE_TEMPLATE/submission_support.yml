@@ -9,7 +9,7 @@ body:
       value: |
         Use this template if you need help with submission structure, metadata, or validation.
 
-        Primary guide: `/home/runner/work/QOBLIB/QOBLIB/CONTRIBUTING.md`
+        Primary guide: `CONTRIBUTING.md`
   - type: dropdown
     id: support_type
     attributes:
@@ -57,7 +57,7 @@ body:
     attributes:
       label: Confirmation (do not remove)
       options:
-        - label: I reviewed `/home/runner/work/QOBLIB/QOBLIB/CONTRIBUTING.md`.
+        - label: I reviewed `CONTRIBUTING.md`.
           required: true
         - label: I included enough context (paths, commands, errors) for maintainers to help.
           required: true

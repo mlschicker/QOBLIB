@@ -222,9 +222,13 @@ fn main() {
     let args: Vec<String> = env::args().collect();
 
     if args.len() < 3 {
-        panic!("usage: {} instance-file solution-file|01-string", &args[0]);
+        eprintln!("USAGE: usage: {} instance-file solution-file|01-string", &args[0]);
+        std::process::exit(2);
     }
-    let instance_data = fs::read_to_string(&args[1]).unwrap_or_else(|err| panic!("Reading {} failed: {err}", args[1]));
+    let instance_data = fs::read_to_string(&args[1]).unwrap_or_else(|err| {
+        eprintln!("USAGE: reading instance file {} failed: {err}", args[1]);
+        std::process::exit(2);
+    });
 
     let solution_arg = &args[2];
 
@@ -234,7 +238,10 @@ fn main() {
     let solution_data = if is_binary(solution_arg) {
         solution_arg.as_bytes().to_vec()
     } else {
-        fs::read(solution_arg).unwrap_or_else(|err| panic!("Reading {} failed: {err}", solution_arg))
+        fs::read(solution_arg).unwrap_or_else(|err| {
+            eprintln!("USAGE: reading solution file {solution_arg} failed: {err}");
+            std::process::exit(2);
+        })
     };
 
     // Verify solution. Reaching this point means the file already parsed into a
