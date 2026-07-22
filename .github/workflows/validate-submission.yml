@@ -76,21 +76,31 @@ jobs:
               | sort -u
           )
 
-          {
-            echo "<!-- qoblib-validation -->"
-            echo "## 🤖 QOBLIB submission validation"
-            echo ""
-          } > "$COMMENT"
+          # The comment wording lives in misc/ci/comment_template.md; this step only
+          # assembles the dynamic {{RESULTS}} / {{VERDICT}} blocks and fills it in.
+          TEMPLATE="misc/ci/comment_template.md"
+          DOC_URL="${{ github.server_url }}/${{ github.repository }}/blob/${HEAD}/misc/ci/CHECKER_CONTRACT.md"
+          RESULTS="$RUNNER_TEMP/results.md"
+          : > "$RESULTS"
+
+          # render <verdict-literal-or-@file>  → fills the template into $COMMENT.
+          render() {
+            uv run --project misc python misc/ci/render_comment.py "$TEMPLATE" \
+              "VERDICT=$1" "RESULTS=@$RESULTS" "DOC_URL=$DOC_URL" > "$COMMENT"
+          }
 
           if [ "${#ROOTS[@]}" -eq 0 ]; then
-            echo "No submission directories changed — nothing to validate." >> "$COMMENT"
+            echo "_No submission directories changed — nothing to validate._" > "$RESULTS"
+            render "### ✅ All checks passed"
             echo "failed=0" >> "$GITHUB_OUTPUT"
             cat "$COMMENT" >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
 
-          echo "Validated **${#ROOTS[@]}** submission root(s):" >> "$COMMENT"
-          echo "" >> "$COMMENT"
+          {
+            echo "Validated **${#ROOTS[@]}** submission root(s):"
+            echo ""
+          } >> "$RESULTS"
 
           FAILED=0
           declare -a FAILED_ROOTS=()
@@ -114,13 +124,13 @@ jobs:
               echo ""
               echo "</details>"
               echo ""
-            } >> "$COMMENT"
+            } >> "$RESULTS"
             echo "::endgroup::"
           done
 
           # Best-known-value check (informational): reports any improvement over the
           # current reference. It never fails the PR — the reference solutions/ files
-          # solutions and README.md tables are regenerated automatically on merge to main by
+          # and README.md tables are regenerated automatically on merge to main by
           # .github/workflows/update-bkv.yml.
           echo "::group::Best-known value check"
           BKV_OUT="$RUNNER_TEMP/bkv.txt"
@@ -136,36 +146,21 @@ jobs:
             echo '```'
             echo ""
             echo "</details>"
-            echo ""
-          } >> "$COMMENT"
+          } >> "$RESULTS"
           echo "::endgroup::"
 
-          # Prepend the overall verdict right after the heading.
-          HEADER="$RUNNER_TEMP/header.md"
-          {
-            echo "<!-- qoblib-validation -->"
-            echo "## 🤖 QOBLIB submission validation"
-            echo ""
-            if [ "$FAILED" -ne 0 ]; then
+          if [ "$FAILED" -ne 0 ]; then
+            VERDICT="$RUNNER_TEMP/verdict.md"
+            {
               echo "### ❌ Validation failed"
               echo ""
               echo "The following submission root(s) did not pass:"
               for r in "${FAILED_ROOTS[@]}"; do echo "- \`$r\`"; done
-            else
-              echo "### ✅ All checks passed"
-            fi
-            echo ""
-          } > "$HEADER"
-          # Replace the placeholder header (first 3 lines) with the verdict header.
-          tail -n +4 "$COMMENT" > "$COMMENT.body"
-          cat "$HEADER" "$COMMENT.body" > "$COMMENT"
-
-          {
-            echo ""
-            echo "---"
-            DOC_URL="${{ github.server_url }}/${{ github.repository }}/blob/${HEAD}/misc/ci/CHECKER_CONTRACT.md"
-            echo "_Policy: solution files must always be **valid**; **feasibility** is checked only when the submission declares it (\`# Feasible Runs\` > 0 or blank), and **optimality** only when it asserts a proven optimum (\`Optimality Bound\` = \`Best Objective Value\`). See [\`misc/ci/CHECKER_CONTRACT.md\`]($DOC_URL)._"
-          } >> "$COMMENT"
+            } > "$VERDICT"
+            render "@$VERDICT"
+          else
+            render "### ✅ All checks passed"
+          fi
 
           cat "$COMMENT" >> "$GITHUB_STEP_SUMMARY"
           echo "failed=$FAILED" >> "$GITHUB_OUTPUT"

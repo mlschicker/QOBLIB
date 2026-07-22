@@ -103,6 +103,33 @@ beats the current reference best-known value. Run with `--warn-only` in CI so it
 never blocks the PR — the reference files and tables are regenerated on merge by
 `update-bkv.yml`.
 
+## The submission-validation PR comment
+
+`validate-submission.yml` posts a sticky PR comment. Its wording lives in an
+editable template, [`comment_template.md`](comment_template.md), filled by
+[`render_comment.py`](render_comment.py):
+
+| Placeholder | Filled with |
+| --- | --- |
+| `{{VERDICT}}` | `### ✅ All checks passed`, or `### ❌ Validation failed` + the list of failing roots |
+| `{{RESULTS}}` | the per-root checker sections and the best-known-value block (or the "nothing to validate" note) |
+| `{{DOC_URL}}` | link to `CHECKER_CONTRACT.md` at the PR's commit |
+
+Edit `comment_template.md` for the static wording (title, layout, policy footer).
+The per-root section wording and the two verdict phrases are assembled in the
+workflow's *Validate changed submissions* step. `render_comment.py` replaces
+`{{KEY}}` tokens; a value of `@path` is read from a file (used for the multi-line
+blocks). Test a render locally:
+
+```bash
+uv run --project misc python misc/ci/render_comment.py misc/ci/comment_template.md \
+  "VERDICT=### ✅ All checks passed" "RESULTS=_demo_" "DOC_URL=https://example/CHECKER_CONTRACT.md"
+```
+
+> The `<!-- qoblib-validation -->` marker on the first line is how the companion
+> `validate-submission-comment.yml` finds and **updates** the existing comment
+> instead of posting duplicates — keep it identical in both files.
+
 ## Website data builder
 
 The public site is a static frontend (committed under [`../../website/`](../../website))
