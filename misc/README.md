@@ -12,7 +12,6 @@ subdirectories and is installable/runnable with [`uv`](https://docs.astral.sh/uv
 | [`tools/`](tools/) | **Standalone maintenance utilities** (format converters, metric extraction, QUBO simplification, figure generation, licensing). Each is independently runnable; the heavy ones declare their own dependencies inline. See [`tools/README.md`](tools/README.md). |
 | [`bin/`](bin/) | Third-party **binaries** (the ZIMPL modeling-language executable). |
 | [`generators/`](generators/) | Notes on the external QUBO-generation toolchains. |
-| [`notebooks/`](notebooks/) | One-off Jupyter notebooks (e.g. the historical submission migration). |
 | `submission_template.csv` | The canonical 30-column submission template (referenced from `CONTRIBUTING.md`). |
 | `pyproject.toml`, `.python-version`, `uv.lock` | Packaging + pinned interpreter for the `uv` environment. |
 
