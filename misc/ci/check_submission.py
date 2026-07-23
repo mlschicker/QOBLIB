@@ -45,14 +45,11 @@ Usage:
   python validate_submission.py SUBMISSION_ROOT
     [--all]                              # validate every submission under a repo / problem-class / submissions dir
     [--no-check]                         # disable automatic per-problem solution checker
-    [--checker-cmd '...{solution}...']   # command template with placeholders
     [--instance-pattern 'glob*']         # only check matching instance dir names
-    [--fail-on-checker]                  # mark instance invalid if checker fails/returns nonzero
     [--generate-readme]                  # (re)create README.md from CSV pretty table
     [--strict-problem-match]             # require CSV Problem column == instance dir name
     [--verbose]
     [--quiet]
-  Placeholders for --checker-cmd: {submission_root} {instance_dir} {instance} {solution}
 
 Exit code is nonzero if any instance fails validation.
 
@@ -752,47 +749,6 @@ def apply_checker_policy(
                     "because the submission makes no optimality claim.")
 
 
-# ---------------------------------------------------------------------------
-# Manual template checker (original)
-# ---------------------------------------------------------------------------
-
-def run_checker_on_solutions(
-    checker_cmd_tpl: str,
-    submission_root: Path,
-    instance_dir: Path,
-    instance: str,
-    solutions: List[Path],
-    report: InstanceReport,
-) -> None:
-    for sol in solutions:
-        cmd = checker_cmd_tpl.format(
-            submission_root=str(submission_root),
-            instance_dir=str(instance_dir),
-            instance=instance,
-            solution=str(sol),
-        )
-        # Shell execution so users can pass pipelines; but warn about shells
-        try:
-            proc = subprocess.run(
-                cmd,
-                shell=True,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-            checker_result = CheckerResult(
-                solution_path=sol,
-                returncode=proc.returncode,
-                stdout=proc.stdout.strip(),
-                stderr=proc.stderr.strip(),
-            )
-            report.checker_results.append(checker_result)
-            if proc.returncode == 0:
-                report.info(f"Checker ran successfully for solution {sol.name}.")
-        except Exception as e:
-            report.fail(f"Checker execution failed for {sol.name}: {e}")
-
-
 def print_report(reports: List[InstanceReport], quiet: bool=False) -> None:
     total = len(reports)
     passed = sum(1 for r in reports if r.ok)
@@ -882,15 +838,6 @@ def validate_instance(
             )
         # If layout unrecognised, silently skip (no checker available)
 
-    # 6) Manual template checker if --checker-cmd provided
-    if args.checker_cmd and solutions:
-        manual_start = len(report.checker_results)
-        run_checker_on_solutions(args.checker_cmd, submission_root, inst_dir, instance, solutions, report)
-        if args.fail_on_checker:
-            for cr in report.checker_results[manual_start:]:
-                if cr.returncode != 0:
-                    report.fail(f"Checker failed for solution {cr.solution_path.name} with return code {cr.returncode}.")
-
     return report
 
 
@@ -941,11 +888,6 @@ def main() -> None:
                              "under <root>/*/submissions/*. Aggregates results across all submissions.")
     parser.add_argument("--no-check", action="store_true",
                         help="Disable the automatic per-problem solution checker.")
-    parser.add_argument("--checker-cmd", type=str, default=None,
-                        help=("Command template to run a solution checker for each solution. "
-                              "Placeholders: {submission_root} {instance_dir} {instance} {solution}"))
-    parser.add_argument("--fail-on-checker", action="store_true",
-                        help="Mark instance invalid if checker returns nonzero.")
     parser.add_argument("--instance-pattern", type=str, default=None,
                         help="Only validate instance directories whose names match this glob (e.g., 'vrp_*').")
     parser.add_argument("--generate-readme", action="store_true",
