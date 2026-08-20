@@ -14,6 +14,8 @@
 #                 (default: --no-check → fast structural pass, skips the Rust
 #                  per-problem solution checkers; set CHECK_ARGS="" for the full
 #                  check, which requires cargo + each problem's check/ project)
+#   MANIFEST_OUT  output path for the generated manifest
+#                 (default: /tmp/manifest-local.json — never overwrites the real one)
 #
 # For full container-level fidelity instead, install Docker + act and run:
 #   act pull_request -W .github/workflows/pages.yml
@@ -36,6 +38,13 @@ run_pages() {   # .github/workflows/pages.yml (main only — tests, then build +
   "${UV[@]}" qoblib-build-site --out _site \
     --repo-url "$(git remote get-url origin 2>/dev/null || echo https://github.com/ZIB-AOPT/QOBLIB)" \
     --ref "$(git rev-parse HEAD)" || rc=1
+}
+
+run_manifest() {  # .github/workflows/update_manifest.yml
+  step "update-manifest: generate manifest"
+  local out="${MANIFEST_OUT:-/tmp/manifest-local.json}"
+  "${UV[@]}" python misc/ci/generate_manifest.py > "$out" || rc=1
+  echo "  Written to $out"
 }
 
 run_bkv() {     # .github/workflows/update-bkv.yml (non-destructive: --check writes nothing)
@@ -72,10 +81,11 @@ run_validate() {  # .github/workflows/validate-submission.yml
 case "${1:-all}" in
   tests)    run_tests ;;
   pages)    run_pages ;;
+  manifest) run_manifest ;;
   bkv)      run_bkv ;;
   validate) run_validate ;;
-  all)      run_tests; run_pages; run_bkv; run_validate ;;
-  *) echo "usage: $0 [tests|pages|bkv|validate|all]" >&2; exit 2 ;;
+  all)      run_tests; run_pages; run_manifest; run_bkv; run_validate ;;
+  *) echo "usage: $0 [tests|pages|manifest|bkv|validate|all]" >&2; exit 2 ;;
 esac
 
 if [ "$rc" -eq 0 ]; then printf '\n\033[1;32m✓ local CI passed\033[0m\n'; else printf '\n\033[1;31m✗ local CI had failures\033[0m\n'; fi

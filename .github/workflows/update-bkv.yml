@@ -22,8 +22,10 @@ on:
 permissions:
   contents: write
 
+# Share the concurrency group with update-manifest so the two bot-commit
+# workflows never push to main simultaneously (one will queue behind the other).
 concurrency:
-  group: update-bkv
+  group: chore-commits
   cancel-in-progress: false
 
 jobs:

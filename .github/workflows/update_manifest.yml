@@ -1,0 +1,62 @@
+name: Update manifest
+
+# Regenerates manifest.json after content lands on main.
+#
+# Triggered two ways:
+#   1. workflow_run: fires after "Update best-known records" completes on main,
+#      so the manifest always captures any BKV-promoted solution files.
+#   2. push: catches direct changes to instances/, models/, or submissions/
+#      that don't go through update-bkv (e.g. new instances or model files).
+#      solutions/** is intentionally excluded here — those changes arrive via
+#      update-bkv's commit, which is already covered by the workflow_run trigger.
+#
+# The commit it makes only touches manifest.json, so it never re-triggers
+# either of these conditions ([skip ci] + no path overlap).
+
+on:
+  workflow_run:
+    workflows: ["Update best-known records"]
+    types: [completed]
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - "**/instances/**"
+      - "**/models/**"
+      - "**/submissions/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# Share the concurrency group with update-bkv so the two bot-commit workflows
+# never push to main simultaneously (one will queue behind the other).
+concurrency:
+  group: chore-commits
+  cancel-in-progress: false
+
+jobs:
+  update-manifest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          python-version: "3.12"
+          enable-cache: true
+
+      - name: Generate manifest
+        run: uv run --project misc python misc/ci/generate_manifest.py > manifest.json
+
+      - name: Commit manifest if changed
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add manifest.json
+          git diff --cached --quiet || git commit -m "chore: update manifest [skip ci]"
+          git push

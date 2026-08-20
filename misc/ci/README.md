@@ -11,6 +11,7 @@ is also directly executable.
 | `check_submission.py` — `qoblib-check-submission` | `validate-submission.yml` | Authoritative submission validator (structure, CSV format, solution checks). |
 | `check_bkv_updates.py` — `qoblib-check-bkv` | `validate-submission.yml` | Informational best-known-value diff for a PR (warn-only). |
 | `update_bkv.py` — `qoblib-update-bkv` | `update-bkv.yml` | Recomputes best-known values, copies improving solutions, regenerates the `solutions/README.md` tables. |
+| `generate_manifest.py` | `update_manifest.yml` | Generates `manifest.json` listing every instance/solution/model/submission with path, kind, size, and SHA-256. |
 | `build_site.py` — `qoblib-build-site` | `pages.yml` | Builds the static GitHub Pages site (JSON data + static frontend copy). |
 | `generate_all_readmes.sh` | — (manual) | Runs `check_submission.py --generate-readme` over every submission root. |
 | `CHECKER_CONTRACT.md` | — | The exit-code contract shared by the per-problem Rust checkers and `check_submission.py`. |
@@ -32,10 +33,13 @@ them without Docker using [`local-ci.sh`](local-ci.sh):
 misc/ci/local-ci.sh            # everything (default)
 misc/ci/local-ci.sh tests      # unit tests                    (tests.yml)
 misc/ci/local-ci.sh pages      # unit tests + build_site       (pages.yml)
+misc/ci/local-ci.sh manifest   # generate manifest             (update_manifest.yml)
 misc/ci/local-ci.sh bkv        # update_bkv --check, no writes  (update-bkv.yml)
 misc/ci/local-ci.sh validate   # check_submission + check_bkv   (validate-submission.yml)
 ```
 
+- `manifest` writes to `/tmp/manifest-local.json` by default so it never
+  overwrites the committed `manifest.json`; override with `MANIFEST_OUT=<path>`.
 - `bkv` is non-destructive (`--check` writes nothing, exits non-zero if a table
   is stale).
 - `validate` diffs against `origin/main` by default; override with `BASE=…
