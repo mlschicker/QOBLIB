@@ -48,102 +48,115 @@ from pathlib import Path
 # Problem class configuration
 #
 # Maps the manifest slug to:
-#   - directory : top-level directory in the repo
-#   - kinds     : mapping of subdirectory name -> file kind string
+#   - directory   : top-level directory in the repo
+#   - kinds       : mapping of subdirectory name -> KindConfig dict with keys:
+#       kind        file kind string ("instance", "solution", "model", "submission")
+#       exts        allowlist of lowercase file extensions to include;
+#                   any file whose final extension is NOT in this set is skipped
+#                   (catches README.md, *.sh, *.zpl, *.csv metadata files, etc.)
+#       skip_dirs   (optional) set of immediate child directory names under the
+#                   kind subdir to exclude entirely (e.g. instance_gen_set)
 #
-# Files in any listed subdirectory are included; everything else is ignored.
 # Files whose basename starts with '.' are always skipped.
 # ---------------------------------------------------------------------------
+
+# Extensions considered data files for each broad category.
+_INSTANCE_EXTS  = {".dat", ".json", ".gph", ".xml", ".vrp", ".lp", ".mps", ".gz", ".xz", ".bz2", ".lzma"}
+_SOLUTION_EXTS  = {".sol", ".xml", ".gz", ".xz", ".bz2", ".lzma", ".json"}
+_MODEL_EXTS     = {".lp", ".mps", ".gz", ".xz", ".bz2", ".lzma", ".qs"}
+_SUBMISSION_EXTS = {".sol", ".csv", ".json", ".xml", ".gz", ".xz", ".bz2", ".lzma",
+                    ".dat", ".gph", ".lp", ".mps", ".vrp"}
 
 _PROBLEMS: dict[str, dict] = {
     "marketsplit": {
         "directory": "01-marketsplit",
         "kinds": {
-            "instances":   "instance",
-            "solutions":   "solution",
-            "models":      "model",
-            "submissions": "submission",
+            "instances":   {"kind": "instance",   "exts": _INSTANCE_EXTS,
+                            "skip_dirs": {"instance_gen_set"}},
+            "solutions":   {"kind": "solution",   "exts": _SOLUTION_EXTS},
+            "models":      {"kind": "model",      "exts": _MODEL_EXTS},
+            "submissions": {"kind": "submission", "exts": _SUBMISSION_EXTS},
         },
     },
     "labs": {
         "directory": "02-labs",
         "kinds": {
-            "instances":   "instance",
-            "solutions":   "solution",
-            "models":      "model",
-            "submissions": "submission",
+            "instances":   {"kind": "instance",   "exts": _INSTANCE_EXTS},
+            "solutions":   {"kind": "solution",   "exts": _SOLUTION_EXTS},
+            "models":      {"kind": "model",      "exts": _MODEL_EXTS},
+            "submissions": {"kind": "submission", "exts": _SUBMISSION_EXTS},
         },
     },
     "birkhoff": {
         "directory": "03-birkhoff",
         "kinds": {
-            "instances":   "instance",
-            "solutions":   "solution",
-            "models":      "model",
-            "submissions": "submission",
+            "instances":   {"kind": "instance",   "exts": _INSTANCE_EXTS},
+            "solutions":   {"kind": "solution",   "exts": _SOLUTION_EXTS},
+            "models":      {"kind": "model",      "exts": _MODEL_EXTS},
+            "submissions": {"kind": "submission", "exts": _SUBMISSION_EXTS},
         },
     },
     "steiner": {
         "directory": "04-steiner",
         "kinds": {
-            "instances":   "instance",
-            "solutions":   "solution",
-            "models":      "model",
-            "submissions": "submission",
+            "instances":   {"kind": "instance",   "exts": _INSTANCE_EXTS},
+            "solutions":   {"kind": "solution",   "exts": _SOLUTION_EXTS},
+            "models":      {"kind": "model",      "exts": _MODEL_EXTS},
+            "submissions": {"kind": "submission", "exts": _SUBMISSION_EXTS},
         },
     },
     "sports": {
         "directory": "05-sports",
         "kinds": {
-            "instances":   "instance",
-            "solutions":   "solution",
-            "models":      "model",
-            "submissions": "submission",
+            "instances":   {"kind": "instance",   "exts": _INSTANCE_EXTS},
+            "solutions":   {"kind": "solution",   "exts": _SOLUTION_EXTS},
+            "models":      {"kind": "model",      "exts": _MODEL_EXTS},
+            "submissions": {"kind": "submission", "exts": _SUBMISSION_EXTS},
         },
     },
     "portfolio": {
         "directory": "06-portfolio",
         "kinds": {
-            "instances":   "instance",
-            "solutions":   "solution",
-            "models":      "model",
-            "submissions": "submission",
+            "instances":   {"kind": "instance",   "exts": _INSTANCE_EXTS},
+            "solutions":   {"kind": "solution",   "exts": _SOLUTION_EXTS},
+            "models":      {"kind": "model",      "exts": _MODEL_EXTS},
+            "submissions": {"kind": "submission", "exts": _SUBMISSION_EXTS},
         },
     },
     "independentset": {
         "directory": "07-independentset",
         "kinds": {
-            "instances":   "instance",
-            "solutions":   "solution",
-            "models":      "model",
-            "submissions": "submission",
+            "instances":   {"kind": "instance",   "exts": _INSTANCE_EXTS},
+            "solutions":   {"kind": "solution",   "exts": _SOLUTION_EXTS},
+            "models":      {"kind": "model",      "exts": _MODEL_EXTS},
+            "submissions": {"kind": "submission", "exts": _SUBMISSION_EXTS},
         },
     },
     "network": {
         "directory": "08-network",
         "kinds": {
-            "instances":   "instance",
-            "solutions":   "solution",
-            "models":      "model",
-            "submissions": "submission",
+            "instances":   {"kind": "instance",   "exts": _INSTANCE_EXTS},
+            "solutions":   {"kind": "solution",   "exts": _SOLUTION_EXTS},
+            "models":      {"kind": "model",      "exts": _MODEL_EXTS},
+            "submissions": {"kind": "submission", "exts": _SUBMISSION_EXTS},
         },
     },
     "routing": {
         "directory": "09-routing",
         "kinds": {
-            "instances":   "instance",
-            "solutions":   "solution",
-            "models":      "model",
-            "submissions": "submission",
+            "instances":   {"kind": "instance",   "exts": _INSTANCE_EXTS},
+            "solutions":   {"kind": "solution",   "exts": _SOLUTION_EXTS},
+            "models":      {"kind": "model",      "exts": _MODEL_EXTS},
+            "submissions": {"kind": "submission", "exts": _SUBMISSION_EXTS},
         },
     },
     "topology": {
         "directory": "10-topology",
         "kinds": {
-            "instances":   "instance",
-            "solutions":   "solution",
-            "models":      "model",
-            "submissions": "submission",
+            "instances":   {"kind": "instance",   "exts": _INSTANCE_EXTS},
+            "solutions":   {"kind": "solution",   "exts": _SOLUTION_EXTS},
+            "models":      {"kind": "model",      "exts": _MODEL_EXTS},
+            "submissions": {"kind": "submission", "exts": _SUBMISSION_EXTS},
         },
     },
 }
@@ -199,7 +212,7 @@ def _kind_dir_name(rel_path: Path, prob_dir: str) -> str | None:
 def _collect_files(
     root: Path,
     prob_dir: str,
-    kinds: dict[str, str],
+    kinds: dict[str, dict],
 ) -> list[dict]:
     """Walk one problem directory and return a list of FileEntry dicts."""
     base = root / prob_dir
@@ -209,7 +222,11 @@ def _collect_files(
 
     entries: list[dict] = []
 
-    for kind_subdir, kind_str in kinds.items():
+    for kind_subdir, cfg in kinds.items():
+        kind_str  = cfg["kind"]
+        exts      = cfg["exts"]
+        skip_dirs = cfg.get("skip_dirs", set())
+
         kind_path = base / kind_subdir
         if not kind_path.is_dir():
             continue
@@ -222,6 +239,14 @@ def _collect_files(
 
             rel = file_path.relative_to(root)
             rel_parts = rel.parts  # (prob_dir, kind_subdir, [...,] filename)
+
+            # Skip explicitly excluded immediate subdirectories.
+            if len(rel_parts) > 2 and rel_parts[2] in skip_dirs:
+                continue
+
+            # Skip files whose extension is not in the allowlist for this kind.
+            if Path(file_path.name).suffix.lower() not in exts:
+                continue
 
             # For directory-based instances (steiner, portfolio) the logical
             # name is the subdirectory directly under the kind dir, not the
